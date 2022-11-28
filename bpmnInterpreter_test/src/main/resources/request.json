@@ -1,0 +1,4244 @@
+{
+	"id": "Definitions_0gksq5r",
+	"targetNamespace": "http://bpmn.io/schema/bpmn",
+	"exporter": "Camunda Modeler",
+	"exporterVersion": "4.11.1",
+
+	"process": {
+		"id": "dclm-corporate-registration",
+		"name": "dclm-corporate-registration",
+		"processType": "None",
+		"isClosed": "false",
+		"isExecutable": "true",
+		"startEvent": {
+			"id": "StartEvent_07b0wq4",
+			"name": "Begin DCLM Corporate Registration",
+			"outgoing": "SequenceFlow_19s5nc4"
+		},
+		"serviceTask": [
+			{
+				"id": "ServiceTask_10u98xi",
+				"name": "Save Organizations",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "save"
+							},
+							{
+								"key": "@type",
+								"value": "Organization[]"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@Customer.engagedParty"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_0dgyck2",
+				"outgoing": "Flow_08i0ofp"
+			},
+			{
+				"id": "ServiceTask_07y52do",
+				"name": "Save Customers",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "Customer[]"
+							},
+							{
+								"key": "operation",
+								"value": "save"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@BillingAccount.relatedParty[].role=Customer, @ProductOrder.relatedParty[].role=Customer,@Document.relatedEntity,@Payment.payer.name=Customer,@@PartyRole.relatedEntity"
+							},
+							{
+								"key": "updateReferredTypes",
+								"value": "@PartyInteraction.relatedParty[].role=Customer"
+							},
+							{
+								"key": "updateReliesOnFields",
+								"value": "[{\"path\":\"@Wallet\",\"transforms\":[{\"src\":\"id\",\"dst\":\"accountId\"},{\"src\":\"id\",\"srcMethod\":\"generateEntityUrl\",\"srcMethodExtraArgs\":[\"Customer\"],\"dst\":\"accountReferenceUrl\"}]}]"
+							}
+						]
+					}
+				},
+				"incoming": [
+					"Flow_1d3rzk2",
+					"Flow_0ra1x26"
+				],
+				"outgoing": "SequenceFlow_0i3lh6k"
+			},
+			{
+				"id": "ServiceTask_0achl2p",
+				"name": "Submit to OM",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "ProductOrder[]"
+							},
+							{
+								"key": "path",
+								"value": "@ProductOrder"
+							},
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "ProductOrder/submit"
+							},
+							{
+								"key": "saveResponse",
+								"value": "true"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_0x9d8xv",
+				"outgoing": "SequenceFlow_04kca3f"
+			},
+			{
+				"id": "ServiceTask_0vu0n2y",
+				"name": "Registration Failed",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"failed\"}"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_03a4acc",
+				"outgoing": "SequenceFlow_1sm3psj"
+			},
+			{
+				"id": "ServiceTask_1n69lf4",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "SequenceFlow_1oia668",
+				"outgoing": "SequenceFlow_1gf8z9b"
+			},
+			{
+				"id": "ServiceTask_08nnjug",
+				"name": "Create Document",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "save"
+							},
+							{
+								"key": "@type",
+								"value": "Document[]"
+							},
+							{
+								"key": "path",
+								"value": "@Document"
+							},
+							{
+								"key": "parallel",
+								"value": "true"
+							},
+							{
+								"key": "ignoreError",
+								"value": "true"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "SequenceFlow_1xts479",
+				"outgoing": "SequenceFlow_15e2zfy"
+			},
+			{
+				"id": "ServiceTask_1jq1xf9",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_0x8qur5",
+				"outgoing": "SequenceFlow_1o157ox"
+			},
+			{
+				"id": "ServiceTask_0rygewx",
+				"name": "Check If Approval Required",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "PartyInteraction/checkApproval"
+							},
+							{
+								"key": "saveResponseHeader",
+								"value": "true"
+							},
+							{
+								"key": "headerToSave",
+								"value": "x-approval-required"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_19s5nc4",
+				"outgoing": "Flow_0h9ik45"
+			},
+			{
+				"id": "ServiceTask_16ha1hm",
+				"name": "Activate Customer",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "Customer"
+							},
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"active\"}"
+							},
+							{
+								"key": "path",
+								"value": "@Customer"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "SequenceFlow_1ej6xeq",
+				"outgoing": "SequenceFlow_0k4t61o"
+			},
+			{
+				"id": "ServiceTask_1n31t7a",
+				"name": "Activate Party Roles",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "Customer"
+							},
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "path",
+								"value": "@Customer"
+							},
+							{
+								"key": "taskResource",
+								"value": "PartyRole/activatePartyRoles"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "SequenceFlow_0k4t61o",
+				"outgoing": "SequenceFlow_1cjt4pa"
+			},
+			{
+				"id": "ServiceTask_1j5aapc",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "SequenceFlow_1yqydh6",
+				"outgoing": "SequenceFlow_0gj11ye"
+			},
+			{
+				"id": "Activity_0i22p8z",
+				"name": "Set PI to InProgress",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"inProgress\"}"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_0adrs56",
+				"outgoing": "Flow_0dgyck2"
+			},
+			{
+				"id": "ServiceTask_1ob4m9f",
+				"name": "Registration Successful",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"completed\"}"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_1cjt4pa",
+				"outgoing": "SequenceFlow_1yqydh6"
+			},
+			{
+				"id": "ServiceTask_1so7n7l",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "SequenceFlow_1sm3psj",
+				"outgoing": "SequenceFlow_0pbam09"
+			},
+			{
+				"id": "ServiceTask_1fbylt3",
+				"name": "Create Wallets",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "createIfNotExists"
+							},
+							{
+								"key": "@type",
+								"value": "Wallet[]"
+							},
+							{
+								"key": "path",
+								"value": "@Wallet"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@@Customer.wallet[],@@BillingAccount.wallet[]"
+							},
+							{
+								"key": "ignoreErrors",
+								"value": "true"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "Flow_1s79gc5",
+				"outgoing": "SequenceFlow_1oia668"
+			},
+			{
+				"id": "Activity_0ltuays",
+				"name": "Send Notification",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "sendNotification"
+							},
+							{
+								"key": "templateName",
+								"value": "service-order-activation"
+							},
+							{
+								"key": "inputValue",
+								"value": "RequestId:@.id"
+							},
+							{
+								"key": "taskResource",
+								"value": "triggerRequestSpecificNotification"
+							},
+							{
+								"key": "emailTo",
+								"value": "ProfileOwnerEmail,AccountOwnerEmail"
+							},
+							{
+								"key": "msisdn",
+								"value": "ProfileOwnerNumber,AccountOwnerNumber"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_1txnopf",
+				"outgoing": "Flow_1s79gc5"
+			},
+			{
+				"id": "Activity_1lcucjm",
+				"name": "Activate Customers",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "Customer[]"
+							},
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"active\"}"
+							},
+							{
+								"key": "path",
+								"value": "@Customer"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_1ffnczg",
+				"outgoing": "SequenceFlow_0tjk5ze"
+			},
+			{
+				"id": "Activity_1ylv89t",
+				"name": "Bulk Resource Reservation",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "BulkProcess/fileProcess/manualBulkResourceReservation"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_1wic9r3",
+				"outgoing": "Flow_0ico67u"
+			},
+			{
+				"id": "Activity_0bny3x0",
+				"name": "Check for Bulk",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "CustomerInteraction/bulkCheck"
+							},
+							{
+								"key": "saveResponseHeader",
+								"value": "true"
+							},
+							{
+								"key": "headerToSave",
+								"value": "x-bulk-manual-reservation-required,x-bulk-reservation-only-required,x-bulk-required,x-enrichment-required,x-correlation-id,x-bulk-release-required"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_1o07h5x",
+				"outgoing": "Flow_1phhkow"
+			},
+			{
+				"id": "ServiceTask_112q4ot",
+				"name": "Activate Party Roles",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "Customer"
+							},
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "path",
+								"value": "@Customer"
+							},
+							{
+								"key": "taskResource",
+								"value": "PartyRole/activatePartyRoles"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "SequenceFlow_0tjk5ze",
+				"outgoing": "SequenceFlow_0x9d8xv"
+			},
+			{
+				"id": "ServiceTask_1a362g9",
+				"name": "Registration Successful",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "partialUpdate"
+							},
+							{
+								"key": "payload",
+								"value": "{\"status\": \"completed\"}"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_1yuebyp",
+				"outgoing": "SequenceFlow_15wpco5"
+			},
+			{
+				"id": "Activity_07ktlg1",
+				"name": "Save Party Roles Bulk",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "BulkProcess/apiBulk/expandedPartyRole"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_0f9beds",
+				"outgoing": "Flow_1ge8qyg"
+			},
+			{
+				"id": "Activity_14yrh0h",
+				"name": "Save Products Bulk",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "BulkProcess/apiBulk/createProductHierarchy"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_03z7674",
+				"outgoing": "Flow_1mxab94"
+			},
+			{
+				"id": "ServiceTask_0npxefl",
+				"name": "Save Product Order",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "ProductOrder[]"
+							},
+							{
+								"key": "path",
+								"value": "@ProductOrder"
+							},
+							{
+								"key": "operation",
+								"value": "save"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_0ddie91",
+				"outgoing": "SequenceFlow_10hzdoo"
+			},
+			{
+				"id": "Activity_0z8409k",
+				"name": "Enrichment / Pricing",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "BulkProcess/apiBulk/processPricing"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_0kwl4fy",
+				"outgoing": "Flow_1tcxjyz"
+			},
+			{
+				"id": "Activity_1g7v7mz",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_0ico67u",
+				"outgoing": "Flow_0jqrv7n"
+			},
+			{
+				"id": "Activity_1qapn2z",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_1tcxjyz",
+				"outgoing": "Flow_0a2xz3t"
+			},
+			{
+				"id": "ServiceTask_0syn7ug",
+				"name": "Save Billing Account",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "@type",
+								"value": "BillingAccount[]"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@@Customer.account[].name=@name,@ProductOrder.billingAccount.name=@name,@@PartyRole.relatedEntity,@Document.relatedEntity"
+							},
+							{
+								"key": "path",
+								"value": "@BillingAccount"
+							},
+							{
+								"key": "operation",
+								"value": "save"
+							},
+							{
+								"key": "saveResponse",
+								"value": "true"
+							},
+							{
+								"key": "headerToSave",
+								"value": "x-is-m2m"
+							},
+							{
+								"key": "updateReliesOnFields",
+								"value": "[{\"path\":\"@Wallet\",\"transforms\":[{\"src\":\"id\",\"dst\":\"accountId\"},{\"src\":\"id\",\"srcMethod\":\"generateEntityUrl\",\"srcMethodExtraArgs\":[\"BillingManagement\"],\"dst\":\"accountReferenceUrl\"}]}]"
+							}
+						]
+					},
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					}
+				},
+				"incoming": "SequenceFlow_0i3lh6k",
+				"outgoing": "SequenceFlow_1xts479"
+			},
+			{
+				"id": "Activity_0m0vte0",
+				"name": "Save Party Roles and Party Role Individuals",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "@type",
+								"value": "PartyRole[]"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@BillingAccount.relatedParty[].role=PartyRole;role=@roleType,@Customer.relatedParty[].role=PartyRole;role=@roleType"
+							},
+							{
+								"key": "taskResource",
+								"value": "PartyRole/expandedPartyRole"
+							},
+							{
+								"key": "path",
+								"value": "@PartyRole"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_08i0ofp",
+				"outgoing": "Flow_1seo1tw"
+			},
+			{
+				"id": "Activity_1wyck0z",
+				"name": "Save Products",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "ProductOrder/createProductHierarchy"
+							},
+							{
+								"key": "@type",
+								"value": "ProductOrder[]"
+							},
+							{
+								"key": "path",
+								"value": "@ProductOrder"
+							},
+							{
+								"key": "saveResponse",
+								"value": "true"
+							},
+							{
+								"key": "updateReliesOnReferredTypes",
+								"value": "@@Document.relatedEntity"
+							}
+						]
+					}
+				},
+				"incoming": "SequenceFlow_10hzdoo",
+				"outgoing": "Flow_18aljs8"
+			},
+			{
+				"id": "Activity_1vbb7tj",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_1ge8qyg",
+				"outgoing": "Flow_0r7inbl"
+			},
+			{
+				"id": "Activity_0az9hqd",
+				"name": "Bulk Resource Release",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "CustomerInteraction/bulkResourceRelease"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_1r2tj8f",
+				"outgoing": "Flow_1aflx57"
+			},
+			{
+				"id": "Activity_05tmvde",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_1aflx57",
+				"outgoing": "Flow_1ptej9a"
+			},
+			{
+				"id": "Activity_1jntz11",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_0w7ltaq",
+				"outgoing": "Flow_0iw5ig1"
+			},
+			{
+				"id": "Activity_1ugg83k",
+				"name": "Send Notification",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "sendNotification"
+							},
+							{
+								"key": "templateName",
+								"value": "dclm-pending-approval"
+							},
+							{
+								"key": "inputValue",
+								"value": "RequestId:@.id"
+							},
+							{
+								"key": "taskResource",
+								"value": "triggerApprovalNotification"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_03au9xl",
+				"outgoing": "Flow_0w7ltaq"
+			},
+			{
+				"id": "Activity_0btx3a1",
+				"name": "Bulk Resource ReservationOnly",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": [
+							{
+								"key": "operation",
+								"value": "task"
+							},
+							{
+								"key": "taskResource",
+								"value": "CustomerInteraction/bulkResourceReservationOnly"
+							}
+						]
+					}
+				},
+				"incoming": "Flow_0s5jdky",
+				"outgoing": "Flow_07ernse"
+			},
+			{
+				"id": "Activity_1robh7c",
+				"name": "Publish Outcome",
+				"implementation": "##WebService",
+				"extensionElements": {
+					"taskDefinition": {
+						"type": "customer-interaction-service",
+						"retries": "0"
+					},
+					"taskHeaders": {
+						"header": {
+							"key": "operation",
+							"value": "publishOutcome"
+						}
+					}
+				},
+				"incoming": "Flow_07ernse",
+				"outgoing": "Flow_03t99h6"
+			}
+		],
+		"endEvent": [
+			{
+				"id": "EndEvent_1b1soc8",
+				"name": "End DCLM Registration (Failed)",
+				"incoming": "SequenceFlow_0pbam09"
+			},
+			{
+				"id": "EndEvent_05v09a4",
+				"name": "End DCLM Corporate Registration",
+				"incoming": "SequenceFlow_1o157ox"
+			},
+			{
+				"id": "EndEvent_0zrh4pk",
+				"name": "End DCLM Corporate M2M Registration (Success)",
+				"incoming": "SequenceFlow_0gj11ye"
+			},
+			{
+				"id": "EndEvent_19r69z4",
+				"name": "End DCLM Registration (Success)",
+				"incoming": [
+					"SequenceFlow_0nyg9ku",
+					"SequenceFlow_15wpco5"
+				]
+			},
+			{
+				"id": "Event_19glbie",
+				"incoming": "Flow_1rve5oi"
+			},
+			{
+				"id": "Event_0qlzna8",
+				"incoming": "Flow_0bnrlm9"
+			},
+			{
+				"id": "Event_0eikfrm",
+				"incoming": "Flow_10qq87r"
+			},
+			{
+				"id": "Event_0kuo4wr",
+				"incoming": "Flow_1gyz3u2"
+			},
+			{
+				"id": "Event_0ju8khp",
+				"name": "End DCLM Corporate Registration",
+				"incoming": "Flow_0iw5ig1"
+			},
+			{
+				"id": "Event_1hmkrn5",
+				"incoming": "Flow_14op4ov"
+			}
+		],
+		"exclusiveGateway": [
+			{
+				"id": "ExclusiveGateway_1q1gzjw",
+				"name": "OM acknowledged the order successfully?",
+				"default": "SequenceFlow_1txnopf",
+				"incoming": "SequenceFlow_04kca3f",
+				"outgoing": [
+					"SequenceFlow_03a4acc",
+					"SequenceFlow_1txnopf"
+				]
+			},
+			{
+				"id": "ExclusiveGateway_0iz7sjt",
+				"name": "Is status captured",
+				"default": "Flow_0x8qur5",
+				"incoming": [
+					"Flow_0t74xer",
+					"Flow_172ew2g"
+				],
+				"outgoing": [
+					"SequenceFlow_0adrs56",
+					"Flow_0x8qur5"
+				]
+			},
+			{
+				"id": "ExclusiveGateway_0pxob1z",
+				"name": "is M2M registration ?",
+				"default": "SequenceFlow_0ddie91",
+				"incoming": "SequenceFlow_15e2zfy",
+				"outgoing": [
+					"SequenceFlow_1ej6xeq",
+					"SequenceFlow_0ddie91"
+				]
+			},
+			{
+				"id": "Gateway_04yc7oe",
+				"name": "is bulk reservation required?",
+				"default": "Flow_1ihw6mm",
+				"incoming": [
+					"Flow_18528ft",
+					"Flow_0pr5n2c"
+				],
+				"outgoing": [
+					"Flow_1ihw6mm",
+					"Flow_1wic9r3"
+				]
+			},
+			{
+				"id": "ExclusiveGateway_0i7gkkn",
+				"name": "Party Interaction has productOrder",
+				"default": "SequenceFlow_1yuebyp",
+				"incoming": "SequenceFlow_1gf8z9b",
+				"outgoing": [
+					"SequenceFlow_1yuebyp",
+					"SequenceFlow_0nyg9ku"
+				]
+			},
+			{
+				"id": "Gateway_0sx9y3u",
+				"name": "is bulkRequired?",
+				"default": "Flow_1d3rzk2",
+				"incoming": "Flow_1seo1tw",
+				"outgoing": [
+					"Flow_0f9beds",
+					"Flow_1d3rzk2"
+				]
+			},
+			{
+				"id": "Gateway_1k0ky8o",
+				"name": "is bulk required?",
+				"default": "Flow_0atzrsh",
+				"incoming": "Flow_18aljs8",
+				"outgoing": [
+					"Flow_03z7674",
+					"Flow_0atzrsh"
+				]
+			},
+			{
+				"id": "Gateway_1r1hm4i",
+				"name": "is enrichment required?",
+				"default": "Flow_0t74xer",
+				"incoming": [
+					"Flow_1b9s350",
+					"Flow_040zdcl"
+				],
+				"outgoing": [
+					"Flow_0t74xer",
+					"Flow_0kwl4fy"
+				]
+			},
+			{
+				"id": "Gateway_02hrdwx",
+				"name": "Is it failed?",
+				"default": "Flow_00veale",
+				"incoming": "Flow_1to8u9c",
+				"outgoing": [
+					"Flow_00veale",
+					"Flow_1rve5oi"
+				]
+			},
+			{
+				"id": "Gateway_1u0pr40",
+				"name": "Is it failed?",
+				"default": "Flow_0ra1x26",
+				"incoming": "Flow_0tu8w2m",
+				"outgoing": [
+					"Flow_0ra1x26",
+					"Flow_0bnrlm9"
+				]
+			},
+			{
+				"id": "Gateway_0hz67dm",
+				"name": "failed?",
+				"default": "Flow_1hm3ute",
+				"incoming": "Flow_16nmhpd",
+				"outgoing": [
+					"Flow_1hm3ute",
+					"Flow_10qq87r"
+				]
+			},
+			{
+				"id": "Gateway_0zze5w1",
+				"name": "Is it failed?",
+				"default": "Flow_172ew2g",
+				"incoming": "Flow_08bn2tr",
+				"outgoing": [
+					"Flow_172ew2g",
+					"Flow_1gyz3u2"
+				]
+			},
+			{
+				"id": "Gateway_1lj42yc",
+				"name": "is bulk release required?",
+				"default": "Flow_0pr5n2c",
+				"incoming": "Flow_1phhkow",
+				"outgoing": [
+					"Flow_1r2tj8f",
+					"Flow_0pr5n2c"
+				]
+			},
+			{
+				"id": "Gateway_141y6gb",
+				"name": "Is approval required ?",
+				"default": "Flow_1o07h5x",
+				"incoming": "Flow_0h9ik45",
+				"outgoing": [
+					"Flow_1o07h5x",
+					"Flow_03au9xl"
+				]
+			},
+			{
+				"id": "Gateway_1jq3olh",
+				"name": "is bulk reservationOnly required?",
+				"default": "Flow_040zdcl",
+				"incoming": [
+					"Flow_1ihw6mm",
+					"Flow_1hm3ute"
+				],
+				"outgoing": [
+					"Flow_0s5jdky",
+					"Flow_040zdcl"
+				]
+			},
+			{
+				"id": "Gateway_0fi242u",
+				"name": "failed?",
+				"default": "Flow_1b9s350",
+				"incoming": "Flow_1mv65jh",
+				"outgoing": [
+					"Flow_14op4ov",
+					"Flow_1b9s350"
+				]
+			}
+		],
+		"sequenceFlow": [
+			{
+				"id": "SequenceFlow_04kca3f",
+				"sourceRef": "ServiceTask_0achl2p",
+				"targetRef": "ExclusiveGateway_1q1gzjw"
+			},
+			{
+				"id": "SequenceFlow_03a4acc",
+				"name": "No",
+				"sourceRef": "ExclusiveGateway_1q1gzjw",
+				"targetRef": "ServiceTask_0vu0n2y",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=orderManagementSubmissionFailed=true"
+				}
+			},
+			{
+				"id": "SequenceFlow_1o157ox",
+				"sourceRef": "ServiceTask_1jq1xf9",
+				"targetRef": "EndEvent_05v09a4"
+			},
+			{
+				"id": "SequenceFlow_0adrs56",
+				"name": "Yes",
+				"sourceRef": "ExclusiveGateway_0iz7sjt",
+				"targetRef": "Activity_0i22p8z",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"captured\""
+				}
+			},
+			{
+				"id": "SequenceFlow_19s5nc4",
+				"sourceRef": "StartEvent_07b0wq4",
+				"targetRef": "ServiceTask_0rygewx"
+			},
+			{
+				"id": "SequenceFlow_1txnopf",
+				"sourceRef": "ExclusiveGateway_1q1gzjw",
+				"targetRef": "Activity_0ltuays"
+			},
+			{
+				"id": "SequenceFlow_0k4t61o",
+				"sourceRef": "ServiceTask_16ha1hm",
+				"targetRef": "ServiceTask_1n31t7a"
+			},
+			{
+				"id": "SequenceFlow_1ej6xeq",
+				"sourceRef": "ExclusiveGateway_0pxob1z",
+				"targetRef": "ServiceTask_16ha1hm",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=isM2m = \"true\""
+				}
+			},
+			{
+				"id": "SequenceFlow_0ddie91",
+				"sourceRef": "ExclusiveGateway_0pxob1z",
+				"targetRef": "ServiceTask_0npxefl"
+			},
+			{
+				"id": "SequenceFlow_0gj11ye",
+				"sourceRef": "ServiceTask_1j5aapc",
+				"targetRef": "EndEvent_0zrh4pk"
+			},
+			{
+				"id": "SequenceFlow_0i3lh6k",
+				"sourceRef": "ServiceTask_07y52do",
+				"targetRef": "ServiceTask_0syn7ug"
+			},
+			{
+				"id": "SequenceFlow_15e2zfy",
+				"sourceRef": "ServiceTask_08nnjug",
+				"targetRef": "ExclusiveGateway_0pxob1z"
+			},
+			{
+				"id": "Flow_0dgyck2",
+				"sourceRef": "Activity_0i22p8z",
+				"targetRef": "ServiceTask_10u98xi"
+			},
+			{
+				"id": "SequenceFlow_1cjt4pa",
+				"sourceRef": "ServiceTask_1n31t7a",
+				"targetRef": "ServiceTask_1ob4m9f"
+			},
+			{
+				"id": "SequenceFlow_1yqydh6",
+				"sourceRef": "ServiceTask_1ob4m9f",
+				"targetRef": "ServiceTask_1j5aapc"
+			},
+			{
+				"id": "SequenceFlow_1sm3psj",
+				"sourceRef": "ServiceTask_0vu0n2y",
+				"targetRef": "ServiceTask_1so7n7l"
+			},
+			{
+				"id": "SequenceFlow_0pbam09",
+				"sourceRef": "ServiceTask_1so7n7l",
+				"targetRef": "EndEvent_1b1soc8"
+			},
+			{
+				"id": "SequenceFlow_1oia668",
+				"sourceRef": "ServiceTask_1fbylt3",
+				"targetRef": "ServiceTask_1n69lf4"
+			},
+			{
+				"id": "Flow_1ffnczg",
+				"sourceRef": "Activity_0j2167s",
+				"targetRef": "Activity_1lcucjm"
+			},
+			{
+				"id": "Flow_1s79gc5",
+				"sourceRef": "Activity_0ltuays",
+				"targetRef": "ServiceTask_1fbylt3"
+			},
+			{
+				"id": "Flow_0h9ik45",
+				"sourceRef": "ServiceTask_0rygewx",
+				"targetRef": "Gateway_141y6gb"
+			},
+			{
+				"id": "Flow_0ico67u",
+				"sourceRef": "Activity_1ylv89t",
+				"targetRef": "Activity_1g7v7mz"
+			},
+			{
+				"id": "Flow_1phhkow",
+				"sourceRef": "Activity_0bny3x0",
+				"targetRef": "Gateway_1lj42yc"
+			},
+			{
+				"id": "Flow_1ihw6mm",
+				"sourceRef": "Gateway_04yc7oe",
+				"targetRef": "Gateway_1jq3olh"
+			},
+			{
+				"id": "SequenceFlow_0tjk5ze",
+				"sourceRef": "Activity_1lcucjm",
+				"targetRef": "ServiceTask_112q4ot"
+			},
+			{
+				"id": "SequenceFlow_0x9d8xv",
+				"sourceRef": "ServiceTask_112q4ot",
+				"targetRef": "ServiceTask_0achl2p"
+			},
+			{
+				"id": "SequenceFlow_1gf8z9b",
+				"sourceRef": "ServiceTask_1n69lf4",
+				"targetRef": "ExclusiveGateway_0i7gkkn"
+			},
+			{
+				"id": "SequenceFlow_1yuebyp",
+				"sourceRef": "ExclusiveGateway_0i7gkkn",
+				"targetRef": "ServiceTask_1a362g9"
+			},
+			{
+				"id": "SequenceFlow_0nyg9ku",
+				"sourceRef": "ExclusiveGateway_0i7gkkn",
+				"targetRef": "EndEvent_19r69z4",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=metadata.ProductOrder.isPresent = true"
+				}
+			},
+			{
+				"id": "SequenceFlow_15wpco5",
+				"sourceRef": "ServiceTask_1a362g9",
+				"targetRef": "EndEvent_19r69z4"
+			},
+			{
+				"id": "Flow_0f9beds",
+				"name": "Yes",
+				"sourceRef": "Gateway_0sx9y3u",
+				"targetRef": "Activity_07ktlg1",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=bulkRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_03z7674",
+				"name": "Yes",
+				"sourceRef": "Gateway_1k0ky8o",
+				"targetRef": "Activity_14yrh0h",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=bulkRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_1mxab94",
+				"sourceRef": "Activity_14yrh0h",
+				"targetRef": "Event_0s9fuiz"
+			},
+			{
+				"id": "Flow_1ge8qyg",
+				"sourceRef": "Activity_07ktlg1",
+				"targetRef": "Activity_1vbb7tj"
+			},
+			{
+				"id": "SequenceFlow_10hzdoo",
+				"sourceRef": "ServiceTask_0npxefl",
+				"targetRef": "Activity_1wyck0z"
+			},
+			{
+				"id": "Flow_0t74xer",
+				"name": "No",
+				"sourceRef": "Gateway_1r1hm4i",
+				"targetRef": "ExclusiveGateway_0iz7sjt"
+			},
+			{
+				"id": "Flow_1wic9r3",
+				"name": "Yes",
+				"sourceRef": "Gateway_04yc7oe",
+				"targetRef": "Activity_1ylv89t",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=bulkManualReservationRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_1tcxjyz",
+				"sourceRef": "Activity_0z8409k",
+				"targetRef": "Activity_1qapn2z"
+			},
+			{
+				"id": "Flow_0kwl4fy",
+				"name": "Yes",
+				"sourceRef": "Gateway_1r1hm4i",
+				"targetRef": "Activity_0z8409k",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=enrichmentRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_0jqrv7n",
+				"sourceRef": "Activity_1g7v7mz",
+				"targetRef": "Event_0o8fgho"
+			},
+			{
+				"id": "Flow_0a2xz3t",
+				"sourceRef": "Activity_1qapn2z",
+				"targetRef": "Event_076lalg"
+			},
+			{
+				"id": "SequenceFlow_1xts479",
+				"sourceRef": "ServiceTask_0syn7ug",
+				"targetRef": "ServiceTask_08nnjug"
+			},
+			{
+				"id": "Flow_08i0ofp",
+				"sourceRef": "ServiceTask_10u98xi",
+				"targetRef": "Activity_0m0vte0"
+			},
+			{
+				"id": "Flow_1seo1tw",
+				"sourceRef": "Activity_0m0vte0",
+				"targetRef": "Gateway_0sx9y3u"
+			},
+			{
+				"id": "Flow_18aljs8",
+				"sourceRef": "Activity_1wyck0z",
+				"targetRef": "Gateway_1k0ky8o"
+			},
+			{
+				"id": "Flow_1d3rzk2",
+				"name": "No",
+				"sourceRef": "Gateway_0sx9y3u",
+				"targetRef": "ServiceTask_07y52do"
+			},
+			{
+				"id": "Flow_0atzrsh",
+				"name": "No",
+				"sourceRef": "Gateway_1k0ky8o",
+				"targetRef": "Activity_0j2167s"
+			},
+			{
+				"id": "Flow_0r7inbl",
+				"sourceRef": "Activity_1vbb7tj",
+				"targetRef": "Event_198l9jy"
+			},
+			{
+				"id": "Flow_1to8u9c",
+				"sourceRef": "Event_0s9fuiz",
+				"targetRef": "Gateway_02hrdwx"
+			},
+			{
+				"id": "Flow_00veale",
+				"name": "No",
+				"sourceRef": "Gateway_02hrdwx",
+				"targetRef": "Activity_0j2167s"
+			},
+			{
+				"id": "Flow_1rve5oi",
+				"name": "Yes",
+				"sourceRef": "Gateway_02hrdwx",
+				"targetRef": "Event_19glbie",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"failed\""
+				}
+			},
+			{
+				"id": "Flow_0tu8w2m",
+				"sourceRef": "Event_198l9jy",
+				"targetRef": "Gateway_1u0pr40"
+			},
+			{
+				"id": "Flow_0ra1x26",
+				"name": "No",
+				"sourceRef": "Gateway_1u0pr40",
+				"targetRef": "ServiceTask_07y52do"
+			},
+			{
+				"id": "Flow_0bnrlm9",
+				"name": "Yes",
+				"sourceRef": "Gateway_1u0pr40",
+				"targetRef": "Event_0qlzna8",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"failed\""
+				}
+			},
+			{
+				"id": "Flow_1hm3ute",
+				"sourceRef": "Gateway_0hz67dm",
+				"targetRef": "Gateway_1jq3olh"
+			},
+			{
+				"id": "Flow_10qq87r",
+				"name": "Yes",
+				"sourceRef": "Gateway_0hz67dm",
+				"targetRef": "Event_0eikfrm",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"failed\""
+				}
+			},
+			{
+				"id": "Flow_08bn2tr",
+				"sourceRef": "Event_076lalg",
+				"targetRef": "Gateway_0zze5w1"
+			},
+			{
+				"id": "Flow_172ew2g",
+				"sourceRef": "Gateway_0zze5w1",
+				"targetRef": "ExclusiveGateway_0iz7sjt"
+			},
+			{
+				"id": "Flow_1gyz3u2",
+				"name": "Yes",
+				"sourceRef": "Gateway_0zze5w1",
+				"targetRef": "Event_0kuo4wr",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"failed\""
+				}
+			},
+			{
+				"id": "Flow_1r2tj8f",
+				"name": "Yes",
+				"sourceRef": "Gateway_1lj42yc",
+				"targetRef": "Activity_0az9hqd",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=bulkReleaseRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_1aflx57",
+				"sourceRef": "Activity_0az9hqd",
+				"targetRef": "Activity_05tmvde"
+			},
+			{
+				"id": "Flow_1ptej9a",
+				"sourceRef": "Activity_05tmvde",
+				"targetRef": "Event_08r06re"
+			},
+			{
+				"id": "Flow_18528ft",
+				"sourceRef": "Event_08r06re",
+				"targetRef": "Gateway_04yc7oe"
+			},
+			{
+				"id": "Flow_0pr5n2c",
+				"name": "No",
+				"sourceRef": "Gateway_1lj42yc",
+				"targetRef": "Gateway_04yc7oe"
+			},
+			{
+				"id": "Flow_0iw5ig1",
+				"sourceRef": "Activity_1jntz11",
+				"targetRef": "Event_0ju8khp"
+			},
+			{
+				"id": "Flow_0w7ltaq",
+				"sourceRef": "Activity_1ugg83k",
+				"targetRef": "Activity_1jntz11"
+			},
+			{
+				"id": "Flow_1o07h5x",
+				"name": "No",
+				"sourceRef": "Gateway_141y6gb",
+				"targetRef": "Activity_0bny3x0"
+			},
+			{
+				"id": "Flow_03au9xl",
+				"name": "Yes",
+				"sourceRef": "Gateway_141y6gb",
+				"targetRef": "Activity_1ugg83k",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=approvalRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_0x8qur5",
+				"sourceRef": "ExclusiveGateway_0iz7sjt",
+				"targetRef": "ServiceTask_1jq1xf9"
+			},
+			{
+				"id": "Flow_0s5jdky",
+				"name": "Yes",
+				"sourceRef": "Gateway_1jq3olh",
+				"targetRef": "Activity_0btx3a1",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=bulkReservationOnlyRequired = \"true\""
+				}
+			},
+			{
+				"id": "Flow_07ernse",
+				"sourceRef": "Activity_0btx3a1",
+				"targetRef": "Activity_1robh7c"
+			},
+			{
+				"id": "Flow_03t99h6",
+				"sourceRef": "Activity_1robh7c",
+				"targetRef": "Event_079at4e"
+			},
+			{
+				"id": "Flow_1mv65jh",
+				"sourceRef": "Event_079at4e",
+				"targetRef": "Gateway_0fi242u"
+			},
+			{
+				"id": "Flow_14op4ov",
+				"name": "Yes",
+				"sourceRef": "Gateway_0fi242u",
+				"targetRef": "Event_1hmkrn5",
+				"conditionExpression": {
+					"type": "bpmn:tFormalExpression",
+					"": "=interaction.status = \"failed\""
+				}
+			},
+			{
+				"id": "Flow_1b9s350",
+				"name": "No",
+				"sourceRef": "Gateway_0fi242u",
+				"targetRef": "Gateway_1r1hm4i"
+			},
+			{
+				"id": "Flow_040zdcl",
+				"name": "No",
+				"sourceRef": "Gateway_1jq3olh",
+				"targetRef": "Gateway_1r1hm4i"
+			},
+			{
+				"id": "Flow_16nmhpd",
+				"sourceRef": "Event_0o8fgho",
+				"targetRef": "Gateway_0hz67dm"
+			}
+		],
+		"callActivity": {
+			"id": "Activity_0j2167s",
+			"name": "Save Payment",
+			"extensionElements": {
+				"taskDefinition": {
+					"type": "customer-interaction-service",
+					"retries": "0"
+				},
+				"taskHeaders": {
+					"header": [
+						{
+							"key": "operation",
+							"value": "save"
+						},
+						{
+							"key": "@type",
+							"value": "Payment"
+						},
+						{
+							"key": "path",
+							"value": "@Payment"
+						}
+					]
+				},
+				"calledElement": {
+					"processId": "dclm-save-payment",
+					"propagateAllChildVariables": "true"
+				}
+			},
+			"incoming": [
+				"Flow_0atzrsh",
+				"Flow_00veale"
+			],
+			"outgoing": "Flow_1ffnczg"
+		},
+		"intermediateCatchEvent": [
+			{
+				"id": "Event_198l9jy",
+				"name": "BulkSavePartyRolesNotification",
+				"incoming": "Flow_0r7inbl",
+				"outgoing": "Flow_0tu8w2m",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_1o48pdc",
+					"messageRef": "Message_1u3vqva"
+				}
+			},
+			{
+				"id": "Event_0s9fuiz",
+				"name": "BulkSaveProductsNotification",
+				"incoming": "Flow_1mxab94",
+				"outgoing": "Flow_1to8u9c",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_1m5pvr1",
+					"messageRef": "Message_1d3v4qd"
+				}
+			},
+			{
+				"id": "Event_076lalg",
+				"name": "BulkEnrichmentDoneNotification",
+				"incoming": "Flow_0a2xz3t",
+				"outgoing": "Flow_08bn2tr",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_1ibikng",
+					"messageRef": "Message_0utzret"
+				}
+			},
+			{
+				"id": "Event_079at4e",
+				"name": "BulkResourceReservationOnlyDoneEvent",
+				"incoming": "Flow_03t99h6",
+				"outgoing": "Flow_1mv65jh",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_1w4lnhf",
+					"messageRef": "Message_1qhydk9"
+				}
+			},
+			{
+				"id": "Event_0o8fgho",
+				"name": "BulkResourceReservationDoneEvent",
+				"incoming": "Flow_0jqrv7n",
+				"outgoing": "Flow_16nmhpd",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_1oqdzfr",
+					"messageRef": "Message_0s0lpvk"
+				}
+			},
+			{
+				"id": "Event_08r06re",
+				"name": "BulkResourceReservationDoneEvent",
+				"incoming": "Flow_1ptej9a",
+				"outgoing": "Flow_18528ft",
+				"messageEventDefinition": {
+					"id": "MessageEventDefinition_0s5rchn",
+					"messageRef": "Message_1ozyq0g"
+				}
+			}
+		]
+	},
+	"message": [
+		{
+			"id": "Message_108sigu",
+			"name": "ProductOrderStateChangeNotification",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_18p8nml",
+			"name": "Message_2vcg8m8"
+		},
+		{
+			"id": "Message_1kplklp",
+			"name": "Message_06pnuc1"
+		},
+		{
+			"id": "Message_0i8qsum",
+			"name": "PaymentStatusChangeNotification",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=momoTransactionId"
+				}
+			}
+		},
+		{
+			"id": "Message_0utzret",
+			"name": "BulkEnrichmentDoneNotification",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_1u3vqva",
+			"name": "BulkSavePartyRolesNotification",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_1d3v4qd",
+			"name": "BulkSaveProductsNotification",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_1qhydk9",
+			"name": "BulkResourceReservationOnlyDoneEvent",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_0s0lpvk",
+			"name": "BulkResourceReservationDoneEvent",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		},
+		{
+			"id": "Message_1ozyq0g",
+			"name": "BulkResourceReservationDoneEvent",
+			"extensionElements": {
+				"subscription": {
+					"correlationKey": "=correlationId"
+				}
+			}
+		}
+	],
+	"BPMNDiagram": {
+		"id": "BPMNDiagram_1",
+		"BPMNPlane": {
+			"id": "BPMNPlane_1",
+			"bpmnElement": "dclm-corporate-registration",
+			"BPMNEdge": [
+				{
+					"id": "Flow_16nmhpd_di",
+					"bpmnElement": "Flow_16nmhpd",
+					"waypoint": [
+						{
+							"x": "1358",
+							"y": "369"
+						},
+						{
+							"x": "1408",
+							"y": "369"
+						}
+					]
+				},
+				{
+					"id": "Flow_040zdcl_di",
+					"bpmnElement": "Flow_040zdcl",
+					"waypoint": [
+						{
+							"x": "1575",
+							"y": "502"
+						},
+						{
+							"x": "2002",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1781",
+							"y": "484",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1b9s350_di",
+					"bpmnElement": "Flow_1b9s350",
+					"waypoint": [
+						{
+							"x": "1899",
+							"y": "393"
+						},
+						{
+							"x": "1899",
+							"y": "502"
+						},
+						{
+							"x": "2002",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1907",
+							"y": "445",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_14op4ov_di",
+					"bpmnElement": "Flow_14op4ov",
+					"waypoint": [
+						{
+							"x": "1899",
+							"y": "343"
+						},
+						{
+							"x": "1899",
+							"y": "247"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1906",
+							"y": "292",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1mv65jh_di",
+					"bpmnElement": "Flow_1mv65jh",
+					"waypoint": [
+						{
+							"x": "1814",
+							"y": "368"
+						},
+						{
+							"x": "1874",
+							"y": "368"
+						}
+					]
+				},
+				{
+					"id": "Flow_03t99h6_di",
+					"bpmnElement": "Flow_03t99h6",
+					"waypoint": [
+						{
+							"x": "1736",
+							"y": "368"
+						},
+						{
+							"x": "1778",
+							"y": "368"
+						}
+					]
+				},
+				{
+					"id": "Flow_07ernse_di",
+					"bpmnElement": "Flow_07ernse",
+					"waypoint": [
+						{
+							"x": "1600",
+							"y": "368"
+						},
+						{
+							"x": "1636",
+							"y": "368"
+						}
+					]
+				},
+				{
+					"id": "Flow_0s5jdky_di",
+					"bpmnElement": "Flow_0s5jdky",
+					"waypoint": [
+						{
+							"x": "1550",
+							"y": "477"
+						},
+						{
+							"x": "1550",
+							"y": "408"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1557",
+							"y": "440",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0x8qur5_di",
+					"bpmnElement": "Flow_0x8qur5",
+					"waypoint": [
+						{
+							"x": "2467",
+							"y": "527"
+						},
+						{
+							"x": "2467",
+							"y": "610"
+						}
+					]
+				},
+				{
+					"id": "Flow_03au9xl_di",
+					"bpmnElement": "Flow_03au9xl",
+					"waypoint": [
+						{
+							"x": "450",
+							"y": "527"
+						},
+						{
+							"x": "450",
+							"y": "591"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "456",
+							"y": "560",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1o07h5x_di",
+					"bpmnElement": "Flow_1o07h5x",
+					"waypoint": [
+						{
+							"x": "475",
+							"y": "502"
+						},
+						{
+							"x": "616",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "503",
+							"y": "484",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0w7ltaq_di",
+					"bpmnElement": "Flow_0w7ltaq",
+					"waypoint": [
+						{
+							"x": "500",
+							"y": "631"
+						},
+						{
+							"x": "541",
+							"y": "631"
+						}
+					]
+				},
+				{
+					"id": "Flow_0iw5ig1_di",
+					"bpmnElement": "Flow_0iw5ig1",
+					"waypoint": [
+						{
+							"x": "641",
+							"y": "631"
+						},
+						{
+							"x": "683",
+							"y": "631"
+						}
+					]
+				},
+				{
+					"id": "Flow_0pr5n2c_di",
+					"bpmnElement": "Flow_0pr5n2c",
+					"waypoint": [
+						{
+							"x": "829",
+							"y": "502"
+						},
+						{
+							"x": "1059",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "937",
+							"y": "484",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_18528ft_di",
+					"bpmnElement": "Flow_18528ft",
+					"waypoint": [
+						{
+							"x": "1084",
+							"y": "613"
+						},
+						{
+							"x": "1084",
+							"y": "527"
+						}
+					]
+				},
+				{
+					"id": "Flow_1ptej9a_di",
+					"bpmnElement": "Flow_1ptej9a",
+					"waypoint": [
+						{
+							"x": "1005",
+							"y": "631"
+						},
+						{
+							"x": "1066",
+							"y": "631"
+						}
+					]
+				},
+				{
+					"id": "Flow_1aflx57_di",
+					"bpmnElement": "Flow_1aflx57",
+					"waypoint": [
+						{
+							"x": "854",
+							"y": "631"
+						},
+						{
+							"x": "905",
+							"y": "631"
+						}
+					]
+				},
+				{
+					"id": "Flow_1r2tj8f_di",
+					"bpmnElement": "Flow_1r2tj8f",
+					"waypoint": [
+						{
+							"x": "804",
+							"y": "527"
+						},
+						{
+							"x": "804",
+							"y": "591"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "811",
+							"y": "556",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1gyz3u2_di",
+					"bpmnElement": "Flow_1gyz3u2",
+					"waypoint": [
+						{
+							"x": "2492",
+							"y": "363"
+						},
+						{
+							"x": "2582",
+							"y": "363"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2529",
+							"y": "345",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_172ew2g_di",
+					"bpmnElement": "Flow_172ew2g",
+					"waypoint": [
+						{
+							"x": "2467",
+							"y": "388"
+						},
+						{
+							"x": "2467",
+							"y": "477"
+						}
+					]
+				},
+				{
+					"id": "Flow_08bn2tr_di",
+					"bpmnElement": "Flow_08bn2tr",
+					"waypoint": [
+						{
+							"x": "2335",
+							"y": "363"
+						},
+						{
+							"x": "2442",
+							"y": "363"
+						}
+					]
+				},
+				{
+					"id": "Flow_10qq87r_di",
+					"bpmnElement": "Flow_10qq87r",
+					"waypoint": [
+						{
+							"x": "1433",
+							"y": "344"
+						},
+						{
+							"x": "1433",
+							"y": "248"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1440",
+							"y": "293",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1hm3ute_di",
+					"bpmnElement": "Flow_1hm3ute",
+					"waypoint": [
+						{
+							"x": "1433",
+							"y": "394"
+						},
+						{
+							"x": "1433",
+							"y": "502"
+						},
+						{
+							"x": "1525",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "541",
+							"y": "445",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0bnrlm9_di",
+					"bpmnElement": "Flow_0bnrlm9",
+					"waypoint": [
+						{
+							"x": "3417",
+							"y": "371"
+						},
+						{
+							"x": "3512",
+							"y": "371"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3457",
+							"y": "353",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0ra1x26_di",
+					"bpmnElement": "Flow_0ra1x26",
+					"waypoint": [
+						{
+							"x": "3392",
+							"y": "396"
+						},
+						{
+							"x": "3392",
+							"y": "462"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3400",
+							"y": "426",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0tu8w2m_di",
+					"bpmnElement": "Flow_0tu8w2m",
+					"waypoint": [
+						{
+							"x": "3320",
+							"y": "371"
+						},
+						{
+							"x": "3367",
+							"y": "371"
+						}
+					]
+				},
+				{
+					"id": "Flow_1rve5oi_di",
+					"bpmnElement": "Flow_1rve5oi",
+					"waypoint": [
+						{
+							"x": "4605",
+							"y": "341"
+						},
+						{
+							"x": "4783",
+							"y": "341"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4686",
+							"y": "323",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_00veale_di",
+					"bpmnElement": "Flow_00veale",
+					"waypoint": [
+						{
+							"x": "4580",
+							"y": "366"
+						},
+						{
+							"x": "4580",
+							"y": "461"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4588",
+							"y": "411",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1to8u9c_di",
+					"bpmnElement": "Flow_1to8u9c",
+					"waypoint": [
+						{
+							"x": "4469",
+							"y": "341"
+						},
+						{
+							"x": "4555",
+							"y": "341"
+						}
+					]
+				},
+				{
+					"id": "Flow_0r7inbl_di",
+					"bpmnElement": "Flow_0r7inbl",
+					"waypoint": [
+						{
+							"x": "3240",
+							"y": "371"
+						},
+						{
+							"x": "3284",
+							"y": "371"
+						}
+					]
+				},
+				{
+					"id": "Flow_0atzrsh_di",
+					"bpmnElement": "Flow_0atzrsh",
+					"waypoint": [
+						{
+							"x": "4338",
+							"y": "501"
+						},
+						{
+							"x": "4436",
+							"y": "501"
+						},
+						{
+							"x": "4436",
+							"y": "500"
+						},
+						{
+							"x": "4534",
+							"y": "500"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4439",
+							"y": "498",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1d3rzk2_di",
+					"bpmnElement": "Flow_1d3rzk2",
+					"waypoint": [
+						{
+							"x": "3083",
+							"y": "501"
+						},
+						{
+							"x": "3213",
+							"y": "501"
+						},
+						{
+							"x": "3213",
+							"y": "502"
+						},
+						{
+							"x": "3342",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3229",
+							"y": "499",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_18aljs8_di",
+					"bpmnElement": "Flow_18aljs8",
+					"waypoint": [
+						{
+							"x": "4212",
+							"y": "501"
+						},
+						{
+							"x": "4288",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_1seo1tw_di",
+					"bpmnElement": "Flow_1seo1tw",
+					"waypoint": [
+						{
+							"x": "2985",
+							"y": "501"
+						},
+						{
+							"x": "3033",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_08i0ofp_di",
+					"bpmnElement": "Flow_08i0ofp",
+					"waypoint": [
+						{
+							"x": "2822",
+							"y": "501"
+						},
+						{
+							"x": "2885",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1xts479_di",
+					"bpmnElement": "SequenceFlow_1xts479",
+					"waypoint": [
+						{
+							"x": "3592",
+							"y": "501"
+						},
+						{
+							"x": "3652",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_0a2xz3t_di",
+					"bpmnElement": "Flow_0a2xz3t",
+					"waypoint": [
+						{
+							"x": "2230",
+							"y": "363"
+						},
+						{
+							"x": "2299",
+							"y": "363"
+						}
+					]
+				},
+				{
+					"id": "Flow_0jqrv7n_di",
+					"bpmnElement": "Flow_0jqrv7n",
+					"waypoint": [
+						{
+							"x": "1270",
+							"y": "369"
+						},
+						{
+							"x": "1322",
+							"y": "369"
+						}
+					]
+				},
+				{
+					"id": "Flow_0kwl4fy_di",
+					"bpmnElement": "Flow_0kwl4fy",
+					"waypoint": [
+						{
+							"x": "2027",
+							"y": "477"
+						},
+						{
+							"x": "2027",
+							"y": "403"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2013",
+							"y": "448",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1tcxjyz_di",
+					"bpmnElement": "Flow_1tcxjyz",
+					"waypoint": [
+						{
+							"x": "2077",
+							"y": "363"
+						},
+						{
+							"x": "2130",
+							"y": "363"
+						}
+					]
+				},
+				{
+					"id": "Flow_1wic9r3_di",
+					"bpmnElement": "Flow_1wic9r3",
+					"waypoint": [
+						{
+							"x": "1084",
+							"y": "477"
+						},
+						{
+							"x": "1084",
+							"y": "409"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1091",
+							"y": "440",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0t74xer_di",
+					"bpmnElement": "Flow_0t74xer",
+					"waypoint": [
+						{
+							"x": "2052",
+							"y": "502"
+						},
+						{
+							"x": "2442",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2068",
+							"y": "484",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "SequenceFlow_10hzdoo_di",
+					"bpmnElement": "SequenceFlow_10hzdoo",
+					"waypoint": [
+						{
+							"x": "4020",
+							"y": "501"
+						},
+						{
+							"x": "4112",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_1ge8qyg_di",
+					"bpmnElement": "Flow_1ge8qyg",
+					"waypoint": [
+						{
+							"x": "3108",
+							"y": "371"
+						},
+						{
+							"x": "3140",
+							"y": "371"
+						}
+					]
+				},
+				{
+					"id": "Flow_1mxab94_di",
+					"bpmnElement": "Flow_1mxab94",
+					"waypoint": [
+						{
+							"x": "4363",
+							"y": "341"
+						},
+						{
+							"x": "4433",
+							"y": "341"
+						}
+					]
+				},
+				{
+					"id": "Flow_03z7674_di",
+					"bpmnElement": "Flow_03z7674",
+					"waypoint": [
+						{
+							"x": "4313",
+							"y": "476"
+						},
+						{
+							"x": "4313",
+							"y": "381"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4320",
+							"y": "426",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_0f9beds_di",
+					"bpmnElement": "Flow_0f9beds",
+					"waypoint": [
+						{
+							"x": "3058",
+							"y": "476"
+						},
+						{
+							"x": "3058",
+							"y": "411"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3053",
+							"y": "455",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "SequenceFlow_15wpco5_di",
+					"bpmnElement": "SequenceFlow_15wpco5",
+					"waypoint": [
+						{
+							"x": "6290",
+							"y": "650"
+						},
+						{
+							"x": "6418",
+							"y": "650"
+						},
+						{
+							"x": "6418",
+							"y": "502"
+						},
+						{
+							"x": "6546",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0nyg9ku_di",
+					"bpmnElement": "SequenceFlow_0nyg9ku",
+					"waypoint": [
+						{
+							"x": "6125",
+							"y": "502"
+						},
+						{
+							"x": "6546",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1yuebyp_di",
+					"bpmnElement": "SequenceFlow_1yuebyp",
+					"waypoint": [
+						{
+							"x": "6100",
+							"y": "527"
+						},
+						{
+							"x": "6100",
+							"y": "650"
+						},
+						{
+							"x": "6190",
+							"y": "650"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1gf8z9b_di",
+					"bpmnElement": "SequenceFlow_1gf8z9b",
+					"waypoint": [
+						{
+							"x": "5960",
+							"y": "502"
+						},
+						{
+							"x": "6075",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0x9d8xv_di",
+					"bpmnElement": "SequenceFlow_0x9d8xv",
+					"waypoint": [
+						{
+							"x": "5030",
+							"y": "501"
+						},
+						{
+							"x": "5140",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0tjk5ze_di",
+					"bpmnElement": "SequenceFlow_0tjk5ze",
+					"waypoint": [
+						{
+							"x": "4851",
+							"y": "501"
+						},
+						{
+							"x": "4930",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_1ihw6mm_di",
+					"bpmnElement": "Flow_1ihw6mm",
+					"waypoint": [
+						{
+							"x": "1109",
+							"y": "502"
+						},
+						{
+							"x": "1525",
+							"y": "502"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "536",
+							"y": "484",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Flow_1phhkow_di",
+					"bpmnElement": "Flow_1phhkow",
+					"waypoint": [
+						{
+							"x": "716",
+							"y": "502"
+						},
+						{
+							"x": "779",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "Flow_0ico67u_di",
+					"bpmnElement": "Flow_0ico67u",
+					"waypoint": [
+						{
+							"x": "1134",
+							"y": "369"
+						},
+						{
+							"x": "1170",
+							"y": "369"
+						}
+					]
+				},
+				{
+					"id": "Flow_0h9ik45_di",
+					"bpmnElement": "Flow_0h9ik45",
+					"waypoint": [
+						{
+							"x": "360",
+							"y": "502"
+						},
+						{
+							"x": "425",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "Flow_1s79gc5_di",
+					"bpmnElement": "Flow_1s79gc5",
+					"waypoint": [
+						{
+							"x": "5600",
+							"y": "501"
+						},
+						{
+							"x": "5690",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "Flow_1ffnczg_di",
+					"bpmnElement": "Flow_1ffnczg",
+					"waypoint": [
+						{
+							"x": "4634",
+							"y": "501"
+						},
+						{
+							"x": "4751",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1oia668_di",
+					"bpmnElement": "SequenceFlow_1oia668",
+					"waypoint": [
+						{
+							"x": "5790",
+							"y": "501"
+						},
+						{
+							"x": "5825",
+							"y": "501"
+						},
+						{
+							"x": "5825",
+							"y": "502"
+						},
+						{
+							"x": "5860",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0pbam09_di",
+					"bpmnElement": "SequenceFlow_0pbam09",
+					"waypoint": [
+						{
+							"x": "5400",
+							"y": "183"
+						},
+						{
+							"x": "5400",
+							"y": "128"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1sm3psj_di",
+					"bpmnElement": "SequenceFlow_1sm3psj",
+					"waypoint": [
+						{
+							"x": "5400",
+							"y": "323"
+						},
+						{
+							"x": "5400",
+							"y": "263"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1yqydh6_di",
+					"bpmnElement": "SequenceFlow_1yqydh6",
+					"waypoint": [
+						{
+							"x": "4890",
+							"y": "674"
+						},
+						{
+							"x": "4990",
+							"y": "674"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1cjt4pa_di",
+					"bpmnElement": "SequenceFlow_1cjt4pa",
+					"waypoint": [
+						{
+							"x": "4700",
+							"y": "674"
+						},
+						{
+							"x": "4790",
+							"y": "674"
+						}
+					]
+				},
+				{
+					"id": "Flow_0dgyck2_di",
+					"bpmnElement": "Flow_0dgyck2",
+					"waypoint": [
+						{
+							"x": "2650",
+							"y": "501"
+						},
+						{
+							"x": "2722",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_15e2zfy_di",
+					"bpmnElement": "SequenceFlow_15e2zfy",
+					"waypoint": [
+						{
+							"x": "3752",
+							"y": "501"
+						},
+						{
+							"x": "3795",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0i3lh6k_di",
+					"bpmnElement": "SequenceFlow_0i3lh6k",
+					"waypoint": [
+						{
+							"x": "3442",
+							"y": "502"
+						},
+						{
+							"x": "3492",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0gj11ye_di",
+					"bpmnElement": "SequenceFlow_0gj11ye",
+					"waypoint": [
+						{
+							"x": "5090",
+							"y": "674"
+						},
+						{
+							"x": "5162",
+							"y": "674"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0ddie91_di",
+					"bpmnElement": "SequenceFlow_0ddie91",
+					"waypoint": [
+						{
+							"x": "3845",
+							"y": "501"
+						},
+						{
+							"x": "3920",
+							"y": "501"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1ej6xeq_di",
+					"bpmnElement": "SequenceFlow_1ej6xeq",
+					"waypoint": [
+						{
+							"x": "3820",
+							"y": "526"
+						},
+						{
+							"x": "3820",
+							"y": "674"
+						},
+						{
+							"x": "4340",
+							"y": "674"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0k4t61o_di",
+					"bpmnElement": "SequenceFlow_0k4t61o",
+					"waypoint": [
+						{
+							"x": "4440",
+							"y": "674"
+						},
+						{
+							"x": "4600",
+							"y": "674"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_1txnopf_di",
+					"bpmnElement": "SequenceFlow_1txnopf",
+					"waypoint": [
+						{
+							"x": "5425",
+							"y": "502"
+						},
+						{
+							"x": "5500",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_19s5nc4_di",
+					"bpmnElement": "SequenceFlow_19s5nc4",
+					"waypoint": [
+						{
+							"x": "210",
+							"y": "502"
+						},
+						{
+							"x": "260",
+							"y": "502"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_0adrs56_di",
+					"bpmnElement": "SequenceFlow_0adrs56",
+					"waypoint": [
+						{
+							"x": "2491",
+							"y": "501"
+						},
+						{
+							"x": "2550",
+							"y": "501"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2513",
+							"y": "524",
+							"width": "18",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "SequenceFlow_1o157ox_di",
+					"bpmnElement": "SequenceFlow_1o157ox",
+					"waypoint": [
+						{
+							"x": "2467",
+							"y": "690"
+						},
+						{
+							"x": "2467",
+							"y": "732"
+						}
+					]
+				},
+				{
+					"id": "SequenceFlow_03a4acc_di",
+					"bpmnElement": "SequenceFlow_03a4acc",
+					"waypoint": [
+						{
+							"x": "5400",
+							"y": "477"
+						},
+						{
+							"x": "5400",
+							"y": "403"
+						}
+					],
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "5412",
+							"y": "443",
+							"width": "15",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "SequenceFlow_04kca3f_di",
+					"bpmnElement": "SequenceFlow_04kca3f",
+					"waypoint": [
+						{
+							"x": "5240",
+							"y": "501"
+						},
+						{
+							"x": "5308",
+							"y": "501"
+						},
+						{
+							"x": "5308",
+							"y": "502"
+						},
+						{
+							"x": "5375",
+							"y": "502"
+						}
+					]
+				}
+			],
+			"BPMNShape": [
+				{
+					"id": "StartEvent_07b0wq4_di",
+					"bpmnElement": "StartEvent_07b0wq4",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "174",
+						"y": "487",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "160",
+							"y": "437",
+							"width": "63",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_10u98xi_di",
+					"bpmnElement": "ServiceTask_10u98xi",
+					"Bounds": {
+						"x": "2722",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_07y52do_di",
+					"bpmnElement": "ServiceTask_07y52do",
+					"Bounds": {
+						"x": "3342",
+						"y": "462",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_0achl2p_di",
+					"bpmnElement": "ServiceTask_0achl2p",
+					"Bounds": {
+						"x": "5140",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_0vu0n2y_di",
+					"bpmnElement": "ServiceTask_0vu0n2y",
+					"Bounds": {
+						"x": "5350",
+						"y": "323",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "EndEvent_1b1soc8_di",
+					"bpmnElement": "EndEvent_1b1soc8",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "5382",
+						"y": "92",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "5433",
+							"y": "90",
+							"width": "59",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "ExclusiveGateway_1q1gzjw_di",
+					"bpmnElement": "ExclusiveGateway_1q1gzjw",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "5375",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "5357",
+							"y": "534",
+							"width": "89",
+							"height": "53"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_1n69lf4_di",
+					"bpmnElement": "ServiceTask_1n69lf4",
+					"Bounds": {
+						"x": "5860",
+						"y": "462",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_08nnjug_di",
+					"bpmnElement": "ServiceTask_08nnjug",
+					"Bounds": {
+						"x": "3652",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "EndEvent_05v09a4_di",
+					"bpmnElement": "EndEvent_05v09a4",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "2449",
+						"y": "732",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2437",
+							"y": "778",
+							"width": "59",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_1jq1xf9_di",
+					"bpmnElement": "ServiceTask_1jq1xf9",
+					"Bounds": {
+						"x": "2417",
+						"y": "610",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ExclusiveGateway_0iz7sjt_di",
+					"bpmnElement": "ExclusiveGateway_0iz7sjt",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "2442",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2424",
+							"y": "534",
+							"width": "87",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_0rygewx_di",
+					"bpmnElement": "ServiceTask_0rygewx",
+					"Bounds": {
+						"x": "260",
+						"y": "462",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ExclusiveGateway_0pxob1z_di",
+					"bpmnElement": "ExclusiveGateway_0pxob1z",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "3795",
+						"y": "476",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3792",
+							"y": "413",
+							"width": "64",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_16ha1hm_di",
+					"bpmnElement": "ServiceTask_16ha1hm",
+					"Bounds": {
+						"x": "4340",
+						"y": "634",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_1n31t7a_di",
+					"bpmnElement": "ServiceTask_1n31t7a",
+					"Bounds": {
+						"x": "4600",
+						"y": "634",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_1j5aapc_di",
+					"bpmnElement": "ServiceTask_1j5aapc",
+					"Bounds": {
+						"x": "4990",
+						"y": "634",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "EndEvent_0zrh4pk_di",
+					"bpmnElement": "EndEvent_0zrh4pk",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "5162",
+						"y": "656",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "5141",
+							"y": "697",
+							"width": "77",
+							"height": "53"
+						}
+					}
+				},
+				{
+					"id": "Activity_0i22p8z_di",
+					"bpmnElement": "Activity_0i22p8z",
+					"Bounds": {
+						"x": "2550",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_1ob4m9f_di",
+					"bpmnElement": "ServiceTask_1ob4m9f",
+					"Bounds": {
+						"x": "4790",
+						"y": "634",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_1so7n7l_di",
+					"bpmnElement": "ServiceTask_1so7n7l",
+					"Bounds": {
+						"x": "5350",
+						"y": "183",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_1fbylt3_di",
+					"bpmnElement": "ServiceTask_1fbylt3",
+					"Bounds": {
+						"x": "5690",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_0j2167s_di",
+					"bpmnElement": "Activity_0j2167s",
+					"Bounds": {
+						"x": "4534",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_0ltuays_di",
+					"bpmnElement": "Activity_0ltuays",
+					"Bounds": {
+						"x": "5500",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "EndEvent_19r69z4_di",
+					"bpmnElement": "EndEvent_19r69z4",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "6546",
+						"y": "484",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "6536",
+							"y": "527",
+							"width": "59",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "Activity_1lcucjm_di",
+					"bpmnElement": "Activity_1lcucjm",
+					"Bounds": {
+						"x": "4751",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_1ylv89t_di",
+					"bpmnElement": "Activity_1ylv89t",
+					"Bounds": {
+						"x": "1034",
+						"y": "329",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_0bny3x0_di",
+					"bpmnElement": "Activity_0bny3x0",
+					"Bounds": {
+						"x": "616",
+						"y": "462",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_04yc7oe_di",
+					"bpmnElement": "Gateway_04yc7oe",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "1059",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1057",
+							"y": "534",
+							"width": "55",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_112q4ot_di",
+					"bpmnElement": "ServiceTask_112q4ot",
+					"Bounds": {
+						"x": "4930",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ExclusiveGateway_0i7gkkn_di",
+					"bpmnElement": "ExclusiveGateway_0i7gkkn",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "6075",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "6058",
+							"y": "440",
+							"width": "87",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_1a362g9_di",
+					"bpmnElement": "ServiceTask_1a362g9",
+					"Bounds": {
+						"x": "6190",
+						"y": "610",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_07ktlg1_di",
+					"bpmnElement": "Activity_07ktlg1",
+					"Bounds": {
+						"x": "3008",
+						"y": "331",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_0sx9y3u_di",
+					"bpmnElement": "Gateway_0sx9y3u",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "3033",
+						"y": "476",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3018",
+							"y": "533",
+							"width": "82",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Activity_14yrh0h_di",
+					"bpmnElement": "Activity_14yrh0h",
+					"Bounds": {
+						"x": "4263",
+						"y": "301",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_1k0ky8o_di",
+					"bpmnElement": "Gateway_1k0ky8o",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "4288",
+						"y": "476",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4273",
+							"y": "533",
+							"width": "81",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Event_154jfka_di",
+					"bpmnElement": "Event_198l9jy",
+					"Bounds": {
+						"x": "3284",
+						"y": "353",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3258",
+							"y": "316",
+							"width": "90",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "Event_020m2fk_di",
+					"bpmnElement": "Event_0s9fuiz",
+					"Bounds": {
+						"x": "4433",
+						"y": "323",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4409",
+							"y": "286",
+							"width": "86",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "ServiceTask_0npxefl_di",
+					"bpmnElement": "ServiceTask_0npxefl",
+					"Bounds": {
+						"x": "3920",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_1r1hm4i_di",
+					"bpmnElement": "Gateway_1r1hm4i",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "2002",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1994",
+							"y": "537",
+							"width": "67",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "Activity_0z8409k_di",
+					"bpmnElement": "Activity_0z8409k",
+					"Bounds": {
+						"x": "1977",
+						"y": "323",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Event_076lalg_di",
+					"bpmnElement": "Event_076lalg",
+					"Bounds": {
+						"x": "2299",
+						"y": "345",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2276",
+							"y": "308",
+							"width": "86",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "Activity_1g7v7mz_di",
+					"bpmnElement": "Activity_1g7v7mz",
+					"Bounds": {
+						"x": "1170",
+						"y": "329",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_1qapn2z_di",
+					"bpmnElement": "Activity_1qapn2z",
+					"Bounds": {
+						"x": "2130",
+						"y": "323",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "ServiceTask_0syn7ug_di",
+					"bpmnElement": "ServiceTask_0syn7ug",
+					"Bounds": {
+						"x": "3492",
+						"y": "462",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_0m0vte0_di",
+					"bpmnElement": "Activity_0m0vte0",
+					"Bounds": {
+						"x": "2885",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_1wyck0z_di",
+					"bpmnElement": "Activity_1wyck0z",
+					"Bounds": {
+						"x": "4112",
+						"y": "461",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_1vbb7tj_di",
+					"bpmnElement": "Activity_1vbb7tj",
+					"Bounds": {
+						"x": "3140",
+						"y": "331",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Event_19glbie_di",
+					"bpmnElement": "Event_19glbie",
+					"Bounds": {
+						"x": "4783",
+						"y": "323",
+						"width": "36",
+						"height": "36"
+					}
+				},
+				{
+					"id": "Gateway_02hrdwx_di",
+					"bpmnElement": "Gateway_02hrdwx",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "4555",
+						"y": "316",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "4554",
+							"y": "286",
+							"width": "53",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Gateway_1u0pr40_di",
+					"bpmnElement": "Gateway_1u0pr40",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "3367",
+						"y": "346",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "3366",
+							"y": "316",
+							"width": "53",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Event_0qlzna8_di",
+					"bpmnElement": "Event_0qlzna8",
+					"Bounds": {
+						"x": "3512",
+						"y": "353",
+						"width": "36",
+						"height": "36"
+					}
+				},
+				{
+					"id": "Gateway_0hz67dm_di",
+					"bpmnElement": "Gateway_0hz67dm",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "1408",
+						"y": "344",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1499",
+							"y": "359",
+							"width": "32",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Event_0eikfrm_di",
+					"bpmnElement": "Event_0eikfrm",
+					"Bounds": {
+						"x": "1415",
+						"y": "212",
+						"width": "36",
+						"height": "36"
+					}
+				},
+				{
+					"id": "Event_0kuo4wr_di",
+					"bpmnElement": "Event_0kuo4wr",
+					"Bounds": {
+						"x": "2582",
+						"y": "345",
+						"width": "36",
+						"height": "36"
+					}
+				},
+				{
+					"id": "Gateway_0zze5w1_di",
+					"bpmnElement": "Gateway_0zze5w1",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "2442",
+						"y": "338",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "2441",
+							"y": "308",
+							"width": "53",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Gateway_1lj42yc_di",
+					"bpmnElement": "Gateway_1lj42yc",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "779",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "768",
+							"y": "440",
+							"width": "71",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "Activity_0az9hqd_di",
+					"bpmnElement": "Activity_0az9hqd",
+					"Bounds": {
+						"x": "754",
+						"y": "591",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_05tmvde_di",
+					"bpmnElement": "Activity_05tmvde",
+					"Bounds": {
+						"x": "905",
+						"y": "591",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Event_0ju8khp_di",
+					"bpmnElement": "Event_0ju8khp",
+					"stroke": "#000",
+					"fill": "#fff",
+					"Bounds": {
+						"x": "683",
+						"y": "613",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "673",
+							"y": "554",
+							"width": "59",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "Activity_1jntz11_di",
+					"bpmnElement": "Activity_1jntz11",
+					"Bounds": {
+						"x": "541",
+						"y": "591",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Activity_1ugg83k_di",
+					"bpmnElement": "Activity_1ugg83k",
+					"Bounds": {
+						"x": "400",
+						"y": "591",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_141y6gb_di",
+					"bpmnElement": "Gateway_141y6gb",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "425",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "422",
+							"y": "440",
+							"width": "55",
+							"height": "27"
+						}
+					}
+				},
+				{
+					"id": "Activity_0btx3a1_di",
+					"bpmnElement": "Activity_0btx3a1",
+					"Bounds": {
+						"x": "1500",
+						"y": "328",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Gateway_1jq3olh_di",
+					"bpmnElement": "Gateway_1jq3olh",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "1525",
+						"y": "477",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1512",
+							"y": "534",
+							"width": "78",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "Activity_1robh7c_di",
+					"bpmnElement": "Activity_1robh7c",
+					"Bounds": {
+						"x": "1636",
+						"y": "328",
+						"width": "100",
+						"height": "80"
+					}
+				},
+				{
+					"id": "Event_079at4e_di",
+					"bpmnElement": "Event_079at4e",
+					"Bounds": {
+						"x": "1778",
+						"y": "350",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1752",
+							"y": "393",
+							"width": "89",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "Gateway_0fi242u_di",
+					"bpmnElement": "Gateway_0fi242u",
+					"isMarkerVisible": "true",
+					"Bounds": {
+						"x": "1874",
+						"y": "343",
+						"width": "50",
+						"height": "50"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1924",
+							"y": "345",
+							"width": "32",
+							"height": "14"
+						}
+					}
+				},
+				{
+					"id": "Event_1hmkrn5_di",
+					"bpmnElement": "Event_1hmkrn5",
+					"Bounds": {
+						"x": "1881",
+						"y": "211",
+						"width": "36",
+						"height": "36"
+					}
+				},
+				{
+					"id": "Event_0zm2nub_di",
+					"bpmnElement": "Event_0o8fgho",
+					"Bounds": {
+						"x": "1322",
+						"y": "351",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1296",
+							"y": "394",
+							"width": "89",
+							"height": "40"
+						}
+					}
+				},
+				{
+					"id": "Event_01y4o2t_di",
+					"bpmnElement": "Event_08r06re",
+					"Bounds": {
+						"x": "1066",
+						"y": "613",
+						"width": "36",
+						"height": "36"
+					},
+					"BPMNLabel": {
+						"Bounds": {
+							"x": "1040",
+							"y": "656",
+							"width": "89",
+							"height": "40"
+						}
+					}
+				}
+			]
+		}
+	}
+}

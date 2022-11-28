@@ -1,0 +1,86 @@
+{
+    "status": "Draft",  // * // Deafault value is "DRAFT" // enum(Draft, Active, Inactive, Expired), On creation service status will be Draft.
+    "type": "string", // enum(simple, a/r, cycled)
+    "title": "string", //* // title of service.
+    "foreignTitle" : "string", // name of the service in other language
+    "expiryDate": "dateString", // NULL value means that it never expires. // on date the service status will be "expired"
+    "validityPeriod": "string", // * // 1 week, 1 month, 30 days, 3 months // Expiry Duration of the subscriptions of the service
+    "description": "string", // Description of the service
+    "media": [ // Media Ids related to the service
+        "string"
+    ],
+    "categories": [ // Categories Ids of service
+        "string" //categoryId:
+    ],
+// ------ not in simple service
+    "isAutoRenewable": false, //Default value is true// If the service is A/R or not
+    "isGiftable": false, //Default value is false // If the service is Giftable or not
+    "isSuspendable": false, //Default value is false // If the service is Suspendable or not 
+    "isCancelable": false, //Default value is false // If the service is Cancelable or not
+    "isExtendable": false, //Default value is false // If the service is Extendable or not
+    "isRefundabale": false, //Default value is false // If the service is Refundabale or not
+    "isPauseable" : false, //Default value is false // If the service is Pauseable or not
+// ------ not in simple service
+    "gracePeriod": number, // number of days before status changing to churn due to insufficient balance, it just used for A/R services.
+    "relationshipToOtherServices": [ // Indicates relationship to other services
+        {
+            "relationshipType": "string", //* //Type of the relationship enum(mutual exclusion, upsell, cross sell, inclusion)
+            "serviceIds": [ 
+                "string" //* // Other services Ids
+            ]
+        }
+    ],
+// ************ Policies can not be changed when the service is activated.
+// ************ But when it is draft then admin can change policies.
+    "notificationPolicies": [
+        {
+          "notificationType": "fake_data",  // enum(on demand, triggered, scheduled)
+                                            // on demand : request by user via API Call
+                                            // triggered : raised by the system automatically
+                                            // scheduled : has scheduled on a specific time
+          "triggerCondition": "fake_data", // enum(on activation, on payment success, paused by user, ...)
+          "template": "fake_data",
+          "media": [
+            "fake_data"
+          ],
+          "relatedThresholdDays": [ //XOR with scheduled scheduled
+            1, // daysBefore
+            2,
+            3
+          ]
+        }
+    ],
+    "Pricing Information": [
+        {
+             "title": "fake_data", // *
+             "action": "fake_data", // * // enum(activation, A/R, cancelation and etc)
+             "priceType": "fake_data",// * // enum(oneTime, rental, advanced rental)
+             "amount": 22.21,
+             "currency": "USD",
+             "description": "fake_data"
+             "discount": {
+                  "discountedPrice": 8.71,
+                  "startPromotionDate": "2019-12-01",
+                  "endPromotionDate": "2012-06-14",
+                  "description": "fake_data"
+             }
+        }
+    ],
+// ------ not in simple service
+    "chargingPolicy": {
+            "numberOfRtryDuetoInsuficentBalance": 1,
+            "intervals": number, //number of hours, default for this is null, if number of retry>1 then it can be set
+            "afterInsuficentBalanceRetrySubscriptionStatus": "stirng", //determine the subscripiton status while retries processing are being done.
+            "isMicrochargingEnabled": false,
+            "microCharginMinimumAmount" : 2.2,
+            "isDiscountedEnabled": false,
+            "discountingMaximumAmount": 2.3
+    },
+    "metadata": [ // Metadata of the service
+        {
+            "attributeType": "string", //* // Type of the attribute
+            "name": "string", //* // Name of  Attribute
+            "value": "string" //* // Value of  Attribute
+        }
+    ]
+}
